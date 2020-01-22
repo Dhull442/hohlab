@@ -5,6 +5,7 @@
 // initialize shellstate
 //
 void shell_init(shellstate_t& state){
+  state.num_keypresses = 0;
 }
 
 //
@@ -38,8 +39,10 @@ void shell_init(shellstate_t& state){
 // - only handle the keys which you're interested in
 // - for example, you may want to handle up(0x48),down(0x50) arrow keys for menu.
 //
-void shell_update(uint8_t scankey, shellstate_t& stateinout){
 
+// Function called when key pressed
+void shell_update(uint8_t scankey, shellstate_t& stateinout){
+    stateinout.num_keypresses++;
     hoh_debug("Got: "<<unsigned(scankey));
 }
 
@@ -63,7 +66,7 @@ void shell_step(shellstate_t& stateinout){
 // shellstate --> renderstate
 //
 void shell_render(const shellstate_t& shell, renderstate_t& render){
-
+  render.num_keypresses = shell.num_keypresses;
   //
   // renderstate. number of keys pressed = shellstate. number of keys pressed
   //
@@ -80,6 +83,7 @@ void shell_render(const shellstate_t& shell, renderstate_t& render){
 // compare a and b
 //
 bool render_eq(const renderstate_t& a, const renderstate_t& b){
+  return a.num_keypresses == b.num_keypresses;
 }
 
 
@@ -87,12 +91,13 @@ static void fillrect(int x0, int y0, int x1, int y1, uint8_t bg, uint8_t fg, int
 static void drawrect(int x0, int y0, int x1, int y1, uint8_t bg, uint8_t fg, int w, int h, addr_t vgatext_base);
 static void drawtext(int x,int y, const char* str, int maxw, uint8_t bg, uint8_t fg, int w, int h, addr_t vgatext_base);
 static void drawnumberinhex(int x,int y, uint32_t number, int maxw, uint8_t bg, uint8_t fg, int w, int h, addr_t vgatext_base);
+static void drawnumberindecimal(int x,int y, uint32_t number, int maxw, uint8_t bg, uint8_t fg, int w, int h, addr_t vgatext_base);
 
 //
 // Given a render state, we need to write it into vgatext buffer
 //
 void render(const renderstate_t& state, int w, int h, addr_t vgatext_base){
-
+  drawnumberindecimal(0, 0, state.num_keypresses, 5, 0, 7, w, h, vgatext_base);
 
   // this is just an example:
   //
@@ -166,5 +171,16 @@ static void drawnumberinhex(int x,int y, uint32_t number, int maxw, uint8_t bg, 
   a[max-1]='\0';
 
   drawtext(x,y,a,maxw,bg,fg,w,h,vgatext_base);
+}
+
+static void drawnumberindecimal(int x,int y, uint32_t number, int maxw, uint8_t bg, uint8_t fg, int w, int h, addr_t vgatext_base){
+  enum {max=sizeof(uint32_t)*2+1};
+  char a[max], *p = a + max - 1;
+  *p = '\0';
+  while(number > 0) {
+    *(--p) = (number % 10) + '0';
+    number /= 10;
+  }
+  drawtext(x,y,p,maxw,bg,fg,w,h,vgatext_base);
 }
 

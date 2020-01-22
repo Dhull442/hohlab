@@ -3,9 +3,11 @@
 #include "util/debug.h"
 
 struct shellstate_t{
+    uint32_t num_keypresses;
 };
 
 struct renderstate_t{
+    uint32_t num_keypresses;
 };
 
 void shell_init(shellstate_t& state);
