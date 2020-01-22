@@ -1,6 +1,8 @@
 #include "labs/shell.h"
 #include "labs/vgatext.h"
 
+// TODO Remove preprocessor directives
+
 #define BLACK 0
 #define BLUE 1
 #define GREEN 2
@@ -10,11 +12,15 @@
 #define BROWN 6
 #define WHITE 7
 
+static void strcpy(char *source, char *target);
+
 //
 // initialize shellstate
 //
 void shell_init(shellstate_t& state){
   state.num_keypresses = 0;
+  char heading[] = "SEASHELL";
+  strcpy(heading, state.heading);
 }
 
 //
@@ -59,15 +65,8 @@ void shell_update(uint8_t scankey, shellstate_t& stateinout){
 //
 // do computation
 //
-void shell_step(shellstate_t& stateinout){
-
-  //
-  //one way:
-  // if a function is enabled in stateinout
-  //   call that function( with arguments stored in stateinout) ;
-//stateinout.args[0] = 5;
-//stateinout.args[1] = 5;
-  //
+void shell_step(shellstate_t& stateinout) {
+  // Do nothing here
 }
 
 
@@ -76,15 +75,9 @@ void shell_step(shellstate_t& stateinout){
 //
 void shell_render(const shellstate_t& shell, renderstate_t& render){
   render.num_keypresses = shell.num_keypresses;
-  //
-  // renderstate. number of keys pressed = shellstate. number of keys pressed
-  //
-  // renderstate. menu highlighted = shellstate. menu highlighted
-  //
-  // renderstate. function result = shellstate. output argument
-  //
-  // etc.
-  //
+  for(int i = 0; i == 0 || shell.heading[i-1] != '\0'; i++) {
+    render.heading[i] = shell.heading[i];
+  }
 }
 
 
@@ -94,7 +87,6 @@ void shell_render(const shellstate_t& shell, renderstate_t& render){
 bool render_eq(const renderstate_t& a, const renderstate_t& b){
   return a.num_keypresses == b.num_keypresses;
 }
-
 
 static void fillrect(int x0, int y0, int x1, int y1, uint8_t bg, uint8_t fg, int w, int h, addr_t vgatext_base);
 static void drawrect(int x0, int y0, int x1, int y1, uint8_t bg, uint8_t fg, int w, int h, addr_t vgatext_base);
@@ -106,23 +98,27 @@ void render_counter(uint32_t num_keypresses, int w, int h, addr_t vgatext_base) 
   const char* counter_description = " Key Count ";
   const char* space = " ";
   drawtext(0, 0, counter_description, 11, BROWN, WHITE + 8, w, h, vgatext_base);
-  drawtext(11, 0, space, 1, CYAN, CYAN, w, h, vgatext_base);
-  drawnumberindecimal(12, 0, num_keypresses, 5, CYAN, WHITE + 8, w, h, vgatext_base);
+  drawtext(11, 0, space, 1, GREEN, GREEN, w, h, vgatext_base);
+  drawnumberindecimal(12, 0, num_keypresses, 5, GREEN, WHITE + 8, w, h, vgatext_base);
+}
+
+void render_statusbar(const char * heading, int w, int h, addr_t vgatext_base) {
+  // Render a GREEN BAR
+  char statusbar[81];
+  for(int i = 0; i < 80; i++) {
+    statusbar[i] = ' ';
+  }
+  statusbar[80] = '\0';
+  drawtext(0, 0, statusbar, 80, CYAN, CYAN, w, h, vgatext_base);
+  drawtext(40, 0, heading, 11, CYAN, WHITE + 8, w, h, vgatext_base);
 }
 
 //
 // Given a render state, we need to write it into vgatext buffer
 //
 void render(const renderstate_t& state, int w, int h, addr_t vgatext_base){
+  render_statusbar(state.heading, w, h, vgatext_base);
   render_counter(state.num_keypresses, w, h, vgatext_base);
-
-  // this is just an example:
-  //
-  // Please create your own user interface
-  //
-  // You may also have simple command line user interface
-  // or menu based interface or a combination of both.
-  //
 
 }
 
@@ -201,3 +197,10 @@ static void drawnumberindecimal(int x,int y, uint32_t number, int maxw, uint8_t 
   drawtext(x,y,p,maxw,bg,fg,w,h,vgatext_base);
 }
 
+static void strcpy(char *source, char *target) {
+  int i = -1;
+  do {
+    i++;
+    target[i] = source[i];
+  } while(source[i] != '\0');
+}

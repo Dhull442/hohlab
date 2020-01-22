@@ -4,10 +4,12 @@
 
 struct shellstate_t{
     uint32_t num_keypresses;
+    char heading[20]; 
 };
 
 struct renderstate_t{
     uint32_t num_keypresses;
+    char heading[20];
 };
 
 void shell_init(shellstate_t& state);
