@@ -16,5 +16,6 @@ void shell_step(shellstate_t& stateinout);
 void shell_render(const shellstate_t& shell, renderstate_t& render);
 
 bool render_eq(const renderstate_t& a, const renderstate_t& b);
+void render_counter(uint32_t num_keypresses, int w, int h, addr_t vgatext_base);
 void render(const renderstate_t& state, int w, int h, addr_t display_base);
 

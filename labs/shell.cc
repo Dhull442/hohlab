@@ -1,6 +1,15 @@
 #include "labs/shell.h"
 #include "labs/vgatext.h"
 
+#define BLACK 0
+#define BLUE 1
+#define GREEN 2
+#define CYAN 3
+#define RED 4
+#define MAGENTA 5
+#define BROWN 6
+#define WHITE 7
+
 //
 // initialize shellstate
 //
@@ -93,11 +102,19 @@ static void drawtext(int x,int y, const char* str, int maxw, uint8_t bg, uint8_t
 static void drawnumberinhex(int x,int y, uint32_t number, int maxw, uint8_t bg, uint8_t fg, int w, int h, addr_t vgatext_base);
 static void drawnumberindecimal(int x,int y, uint32_t number, int maxw, uint8_t bg, uint8_t fg, int w, int h, addr_t vgatext_base);
 
+void render_counter(uint32_t num_keypresses, int w, int h, addr_t vgatext_base) {
+  const char* counter_description = " Key Count ";
+  const char* space = " ";
+  drawtext(0, 0, counter_description, 11, BROWN, WHITE + 8, w, h, vgatext_base);
+  drawtext(11, 0, space, 1, CYAN, CYAN, w, h, vgatext_base);
+  drawnumberindecimal(12, 0, num_keypresses, 5, CYAN, WHITE + 8, w, h, vgatext_base);
+}
+
 //
 // Given a render state, we need to write it into vgatext buffer
 //
 void render(const renderstate_t& state, int w, int h, addr_t vgatext_base){
-  drawnumberindecimal(0, 0, state.num_keypresses, 5, 0, 7, w, h, vgatext_base);
+  render_counter(state.num_keypresses, w, h, vgatext_base);
 
   // this is just an example:
   //
