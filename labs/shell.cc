@@ -22,6 +22,11 @@ void shell_init(shellstate_t& state){
   state.num_keypresses = 0;
   char heading[] = "SEASHELL";
   strcpy(heading, state.heading);
+  for(int i = 0; i < 80; i++) {
+    state.contents[0][i] = ' ';
+  }
+  state.content_ptr = 1;
+  state.command_ptr = 0;
 }
 
 //
@@ -56,14 +61,45 @@ void shell_init(shellstate_t& state){
 // - for example, you may want to handle up(0x48),down(0x50) arrow keys for menu.
 //
 
+static char getchar(int scankey) {
+  const char* top_row = "qwertyuiop";
+  const char* bottom_row = "asdfghjkl";
+  const char* numbers = "1234567890";
+
+  if (scankey >= 0x02 && scankey <= 0x0b) {
+    return numbers[scankey - 0x02];
+  } else if (scankey >= 0x10 && scankey <= 0x19) {
+    return top_row[scankey - 0x10];
+  } else if (scankey >= 0x1e && scankey <= 0x26) {
+    return bottom_row[scankey - 0x1e];
+  } else {
+    return '?';
+  }
+}
+
 // Function called when key pressed
 void shell_update(uint8_t scankey, shellstate_t& stateinout){
     stateinout.num_keypresses++;
-    stateinout.contents[stateinout.content_ptr][0] = 'a' + stateinout.content_ptr;
-    for(int i = 1; i < 80; i++) {
-      stateinout.contents[stateinout.content_ptr][i] = ' ';
-    } 
-    stateinout.content_ptr++;
+
+    // Update the commmand line text
+    if (scankey == 0x1c) {
+      // Copy the text into the shell contents
+      for(int i = 0; i < 79; i++) {
+        stateinout.contents[stateinout.content_ptr][i] = stateinout.command_text[i];
+      }
+      stateinout.content_ptr++;
+      stateinout.command_ptr=0;
+    } else {
+      // Add a character to the command text
+      if (stateinout.command_ptr < 79) {
+        char tmp = getchar(scankey);
+        if (tmp != '?') {
+          stateinout.command_text[stateinout.command_ptr] = getchar(scankey);
+          stateinout.command_ptr++;
+        }
+      }
+    }
+
     hoh_debug("Got: "<<unsigned(scankey));
 }
 
@@ -86,8 +122,8 @@ void shell_render(const shellstate_t& shell, renderstate_t& render){
   }
 
   // Compute the display contents 
-  int beg = max(0, shell.content_ptr - 25);
-  for(int i = 0; i < 25; i++) {
+  int beg = max(0, shell.content_ptr - 24);
+  for(int i = 0; i < 24; i++) {
     if (i + beg < shell.content_ptr) {
       // Copy the string 
       for(int j = 0; j < 80; j++) {
@@ -98,6 +134,15 @@ void shell_render(const shellstate_t& shell, renderstate_t& render){
         render.contents[i][j] = ' ';
       }
     }
+  }
+
+  // Compute the command line contents
+  render.command_text[0] = '>';
+  for(int i = 1; i < 80 && i - 1 < shell.command_ptr; i++) {
+    render.command_text[i] = shell.command_text[i-1];
+  }
+  for(int i = shell.command_ptr + 1; i < 80; i++) {
+    render.command_text[i] = ' '; 
   }
 }
 
@@ -124,7 +169,11 @@ static void render_counter(uint32_t num_keypresses, int w, int h, addr_t vgatext
   drawnumberindecimal(12, 0, num_keypresses, 5, GREEN, WHITE + 8, w, h, vgatext_base);
 }
 
-void render_statusbar(const char * heading, int w, int h, addr_t vgatext_base) {
+static void render_commandline(const char *text, int w, int h, addr_t vgatext_base) {
+  drawtext(0, 24, text, 80, CYAN, WHITE + 8, w, h, vgatext_base);
+}
+
+static void render_statusbar(const char * heading, int w, int h, addr_t vgatext_base) {
   // Render a GREEN BAR
   char statusbar[81];
   for(int i = 0; i < 80; i++) {
@@ -132,7 +181,7 @@ void render_statusbar(const char * heading, int w, int h, addr_t vgatext_base) {
   }
   statusbar[80] = '\0';
   drawtext(0, 0, statusbar, 80, CYAN, CYAN, w, h, vgatext_base);
-  drawtext(40, 0, heading, 11, CYAN, WHITE + 8, w, h, vgatext_base);
+  drawtext(0, 24, heading, 11, CYAN, WHITE + 8, w, h, vgatext_base);
 }
 
 //
@@ -140,13 +189,13 @@ void render_statusbar(const char * heading, int w, int h, addr_t vgatext_base) {
 //
 void render(const renderstate_t& state, int w, int h, addr_t vgatext_base){
   // Print the shell contents
-  for(int i = 0; i < 25; i++) {
+  for(int i = 0; i < 24; i++) {
     drawtext(0, i, state.contents[i], 80, BLACK, GREEN, w, h, vgatext_base);
   }
 
   render_statusbar(state.heading, w, h, vgatext_base);
   render_counter(state.num_keypresses, w, h, vgatext_base);
-
+  render_commandline(state.command_text, w, h, vgatext_base);
 }
 
 
