@@ -82,12 +82,42 @@ static char getchar(int scankey) {
   }
 }
 
+static bool strcompare(char *s1, char *s2, int length) {
+  for(int i = 0; i < length; i++) {
+    if (s1[i] != s2[i]) {
+      return false;
+    }
+  }
+  return true;
+}
+
+static void exec(char* command, int command_length) {
+  // Declare the commands
+  char* echo = "echo";
+  char* prime = "prime";
+  char* fib = "fib";
+
+  if (command_length >= 4 && strcompare(command, echo, 4)) {
+    hoh_debug("Echo called");
+    // exec_echo(command, command_length);
+  } else if (command_length >= 5 && strcompare(command, prime, 5)) {
+    hoh_debug("Prime called");
+    // exec_prime(command, command_length);
+  } else if (command_length >= 3 && strcompare(command, fib, 3)) {
+    hoh_debug("Fib called");
+    // exec_fib(command, command_length);
+  } else {
+    hoh_debug("Invalid command");
+  }
+}
+
 // Function called when key pressed
 void shell_update(uint8_t scankey, shellstate_t& stateinout){
     stateinout.num_keypresses++;
 
     // Update the commmand line text
     if (scankey == 0x1c) {
+      // Enter pressed
       // Copy the text into the shell contents
       stateinout.contents[stateinout.content_ptr][0] = '>';
       for(int i = 1; i < stateinout.command_ptr + 1; i++) {
@@ -96,6 +126,10 @@ void shell_update(uint8_t scankey, shellstate_t& stateinout){
       for(int i = stateinout.command_ptr + 1; i < 80; i++) {
         stateinout.contents[stateinout.content_ptr][i] = ' ';
       }
+      // Execute the current command
+      exec(stateinout.command_text, stateinout.command_ptr);
+
+      // Reset buffers
       stateinout.content_ptr++;
       stateinout.command_ptr=0;
     } else {
