@@ -63,7 +63,8 @@ void shell_init(shellstate_t& state){
 
 static char getchar(int scankey) {
   const char* top_row = "qwertyuiop";
-  const char* bottom_row = "asdfghjkl";
+  const char* middle_row = "asdfghjkl";
+  const char* bottom_row = "zxcvbnm";
   const char* numbers = "1234567890";
 
   if (scankey >= 0x02 && scankey <= 0x0b) {
@@ -71,7 +72,11 @@ static char getchar(int scankey) {
   } else if (scankey >= 0x10 && scankey <= 0x19) {
     return top_row[scankey - 0x10];
   } else if (scankey >= 0x1e && scankey <= 0x26) {
-    return bottom_row[scankey - 0x1e];
+    return middle_row[scankey - 0x1e];
+  } else if (scankey >= 0x2c && scankey <= 0x32) {
+    return bottom_row[scankey - 0x2c];
+  } else if (scankey == 0x39) {
+    return ' ';
   } else {
     return '?';
   }
@@ -84,14 +89,24 @@ void shell_update(uint8_t scankey, shellstate_t& stateinout){
     // Update the commmand line text
     if (scankey == 0x1c) {
       // Copy the text into the shell contents
-      for(int i = 0; i < 79; i++) {
-        stateinout.contents[stateinout.content_ptr][i] = stateinout.command_text[i];
+      stateinout.contents[stateinout.content_ptr][0] = '>';
+      for(int i = 1; i < stateinout.command_ptr + 1; i++) {
+        stateinout.contents[stateinout.content_ptr][i] = stateinout.command_text[i-1];
+      }
+      for(int i = stateinout.command_ptr + 1; i < 80; i++) {
+        stateinout.contents[stateinout.content_ptr][i] = ' ';
       }
       stateinout.content_ptr++;
       stateinout.command_ptr=0;
     } else {
       // Add a character to the command text
-      if (stateinout.command_ptr < 79) {
+      if (scankey == 0xe) {
+        // Backspace
+        if (stateinout.command_ptr > 0) {
+          stateinout.command_text[stateinout.command_ptr] = ' ';
+          stateinout.command_ptr--;
+        }
+      } else if (stateinout.command_ptr < 79) {
         char tmp = getchar(scankey);
         if (tmp != '?') {
           stateinout.command_text[stateinout.command_ptr] = getchar(scankey);
@@ -144,8 +159,12 @@ void shell_render(const shellstate_t& shell, renderstate_t& render){
   for(int i = shell.command_ptr + 1; i < 80; i++) {
     render.command_text[i] = ' '; 
   }
-}
 
+  // Compute the cursor position
+  render.cursor_position_x = 1 + shell.command_ptr;
+  render.cursor_position_y = 24;
+}
+ 
 
 //
 // compare a and b
@@ -181,7 +200,7 @@ static void render_statusbar(const char * heading, int w, int h, addr_t vgatext_
   }
   statusbar[80] = '\0';
   drawtext(0, 0, statusbar, 80, CYAN, CYAN, w, h, vgatext_base);
-  drawtext(0, 24, heading, 11, CYAN, WHITE + 8, w, h, vgatext_base);
+  drawtext(0, 0, heading, 11, CYAN, WHITE + 8, w, h, vgatext_base);
 }
 
 //
@@ -196,6 +215,10 @@ void render(const renderstate_t& state, int w, int h, addr_t vgatext_base){
   render_statusbar(state.heading, w, h, vgatext_base);
   render_counter(state.num_keypresses, w, h, vgatext_base);
   render_commandline(state.command_text, w, h, vgatext_base);
+
+  // Render the cursor
+  const char* cursor = " ";
+  drawtext(state.cursor_position_x, state.cursor_position_y, cursor, 1, WHITE, BLACK, w, h, vgatext_base);
 }
 
 

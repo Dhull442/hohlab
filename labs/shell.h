@@ -20,6 +20,7 @@ struct renderstate_t{
     // Store the contents to be rendered
     char contents[24][80];
     char command_text[79];
+    int cursor_position_x, cursor_position_y;
 };
 
 void shell_init(shellstate_t& state);
