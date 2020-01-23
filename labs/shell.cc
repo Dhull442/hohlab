@@ -102,6 +102,60 @@ void exec_echo(char* command, int command_length, shellstate_t& stateinout) {
   stateinout.content_ptr++;
 }
 
+int read_num(char *num_string, int string_length) {
+  int result = 0;
+  int ctr = 0;
+  while(ctr < string_length && num_string[ctr] != ' ') {
+    int tmp = (int)(num_string[ctr] - '0');
+    if (tmp >= 0 && tmp <= 9) {
+      result = result * 10 + tmp;
+    } else {
+      return -1;
+    }
+    ctr++;
+  }
+  return result;
+}
+
+void exec_fib(char* command, int command_length, shellstate_t& stateinout) {
+  int num = read_num(command + 4, command_length - 4);
+  hoh_debug(num);
+  if (num == -1) {
+    hoh_debug("Invalid fib args");
+    // exec_invalid(stateinout);
+  }
+  // Compute the fibonacci number
+  int ans = -1, ans_1 = -1;
+  if (num <= 2) {
+    ans = 1; 
+  } else {
+    ans = 1; 
+    ans_1 = 1;
+    for(int i = 3; i <= num; i++) {
+      int tmp = ans + ans_1;
+      ans_1 = ans;
+      ans = tmp;
+    }
+  }
+
+  // Print ans on the terminal
+  int length = 0;
+  char ans_string[10];
+  while(ans > 0) {
+    ans_string[10 - (++length)] = '0' + (ans % 10);
+    ans /= 10;
+  }
+
+  // Print the answer string to the terminal
+  for(int i = 10 - length; i < 10; i++) {
+    stateinout.contents[stateinout.content_ptr][i - 10 + length] = ans_string[i];
+  }
+  for(int i = length; i < 80; i++) {
+    stateinout.contents[stateinout.content_ptr][i] = ' ';
+  }
+  stateinout.content_ptr++;
+}
+
 void exec(char* command, int command_length, shellstate_t& stateinout) {
   // Declare the commands
   char echo[] = "echo ";
@@ -109,11 +163,13 @@ void exec(char* command, int command_length, shellstate_t& stateinout) {
   char fib[] = "fib ";
 
   if (command_length >= 5 && strcompare(command, echo, 5)) {
+    hoh_debug("echo called");
     exec_echo(command, command_length, stateinout);
   } else if (command_length >= 6 && strcompare(command, prime, 6)) {
     // exec_prime(command, command_length, shellstate_t& stateinout);
   } else if (command_length >= 4 && strcompare(command, fib, 4)) {
-    // exec_fib(command, command_length, shellstate_t& stateinout);
+    hoh_debug("fib called");
+    exec_fib(command, command_length, stateinout);
   } else {
     // exec_invalid(shellstate_t& stateinout);
   }
@@ -135,7 +191,7 @@ void shell_update(uint8_t scankey, shellstate_t& stateinout){
         stateinout.contents[stateinout.content_ptr][i] = ' ';
       }
       stateinout.content_ptr++;
-      
+
       // Execute the current command
       exec(stateinout.command_text, stateinout.command_ptr, stateinout);
       // Reset buffers
