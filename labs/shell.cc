@@ -91,23 +91,31 @@ static bool strcompare(char *s1, char *s2, int length) {
   return true;
 }
 
-static void exec(char* command, int command_length) {
-  // Declare the commands
-  char* echo = "echo";
-  char* prime = "prime";
-  char* fib = "fib";
+void exec_echo(char* command, int command_length, shellstate_t& stateinout) {
+  // Append the string to the shell contents
+  for(int i = 5; i < command_length; i++) {
+    stateinout.contents[stateinout.content_ptr][i - 5] = command[i]; 
+  }
+  for(int i = command_length - 5; i < 80; i++) {
+    stateinout.contents[stateinout.content_ptr][i] = ' ';
+  }
+  stateinout.content_ptr++;
+}
 
-  if (command_length >= 4 && strcompare(command, echo, 4)) {
-    hoh_debug("Echo called");
-    // exec_echo(command, command_length);
-  } else if (command_length >= 5 && strcompare(command, prime, 5)) {
-    hoh_debug("Prime called");
-    // exec_prime(command, command_length);
-  } else if (command_length >= 3 && strcompare(command, fib, 3)) {
-    hoh_debug("Fib called");
-    // exec_fib(command, command_length);
+void exec(char* command, int command_length, shellstate_t& stateinout) {
+  // Declare the commands
+  char echo[] = "echo ";
+  char prime[] = "prime ";
+  char fib[] = "fib ";
+
+  if (command_length >= 5 && strcompare(command, echo, 5)) {
+    exec_echo(command, command_length, stateinout);
+  } else if (command_length >= 6 && strcompare(command, prime, 6)) {
+    // exec_prime(command, command_length, shellstate_t& stateinout);
+  } else if (command_length >= 4 && strcompare(command, fib, 4)) {
+    // exec_fib(command, command_length, shellstate_t& stateinout);
   } else {
-    hoh_debug("Invalid command");
+    // exec_invalid(shellstate_t& stateinout);
   }
 }
 
@@ -126,11 +134,11 @@ void shell_update(uint8_t scankey, shellstate_t& stateinout){
       for(int i = stateinout.command_ptr + 1; i < 80; i++) {
         stateinout.contents[stateinout.content_ptr][i] = ' ';
       }
-      // Execute the current command
-      exec(stateinout.command_text, stateinout.command_ptr);
-
-      // Reset buffers
       stateinout.content_ptr++;
+      
+      // Execute the current command
+      exec(stateinout.command_text, stateinout.command_ptr, stateinout);
+      // Reset buffers
       stateinout.command_ptr=0;
     } else {
       // Add a character to the command text
