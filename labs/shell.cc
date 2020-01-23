@@ -126,13 +126,26 @@ static int int2string(char* input_string, int n) {
   return length;
 }
 
+void exec_invalid(shellstate_t& stateinout) {
+  char invalid_msg[] = "ERROR: Invalid command";
+  int ctr = 0;
+  while(invalid_msg[ctr] != '\0') {
+    stateinout.contents[stateinout.content_ptr][ctr] = invalid_msg[ctr];
+    ctr++;
+  }
+  for(int i = ctr; i < 80; i++) {
+    stateinout.contents[stateinout.content_ptr][i] = ' ';
+  }
+  stateinout.content_ptr++;
+}
+
 void exec_fib(char* command, int command_length, shellstate_t& stateinout) {
   int num = read_num(command + 4, command_length - 4);
   hoh_debug(num);
   if (num == -1) {
     hoh_debug("Invalid fib args");
     return;
-    // exec_invalid(stateinout);
+    exec_invalid(stateinout);
   }
   // Compute the fibonacci number
   int ans = -1, ans_1 = -1;
@@ -168,7 +181,7 @@ void exec_prime(char* command, int command_length, shellstate_t& stateinout) {
   hoh_debug(num);
   if (num == -1) {
     hoh_debug("Invalid prime args");
-    // exec_invalid(stateinout);
+    exec_invalid(stateinout);
     return;
   }
   // Compute the nth prime number
@@ -204,7 +217,7 @@ void exec(char* command, int command_length, shellstate_t& stateinout) {
     hoh_debug("fib called");
     exec_fib(command, command_length, stateinout);
   } else {
-    // exec_invalid(shellstate_t& stateinout);
+    exec_invalid(stateinout);
   }
 }
 
