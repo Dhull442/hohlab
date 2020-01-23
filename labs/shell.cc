@@ -13,6 +13,7 @@
 #define WHITE 7
 
 static void strcpy(char *source, char *target);
+static int max(int a, int b);
 
 //
 // initialize shellstate
@@ -58,6 +59,11 @@ void shell_init(shellstate_t& state){
 // Function called when key pressed
 void shell_update(uint8_t scankey, shellstate_t& stateinout){
     stateinout.num_keypresses++;
+    stateinout.contents[stateinout.content_ptr][0] = 'a' + stateinout.content_ptr;
+    for(int i = 1; i < 80; i++) {
+      stateinout.contents[stateinout.content_ptr][i] = ' ';
+    } 
+    stateinout.content_ptr++;
     hoh_debug("Got: "<<unsigned(scankey));
 }
 
@@ -71,12 +77,27 @@ void shell_step(shellstate_t& stateinout) {
 
 
 //
-// shellstate --> renderstate
+// shellstate --> renderstatee
 //
 void shell_render(const shellstate_t& shell, renderstate_t& render){
   render.num_keypresses = shell.num_keypresses;
   for(int i = 0; i == 0 || shell.heading[i-1] != '\0'; i++) {
     render.heading[i] = shell.heading[i];
+  }
+
+  // Compute the display contents 
+  int beg = max(0, shell.content_ptr - 25);
+  for(int i = 0; i < 25; i++) {
+    if (i + beg < shell.content_ptr) {
+      // Copy the string 
+      for(int j = 0; j < 80; j++) {
+        render.contents[i][j] = shell.contents[i + beg][j];
+      }
+    } else {
+      for(int j = 0; j < 80; j++) {
+        render.contents[i][j] = ' ';
+      }
+    }
   }
 }
 
@@ -93,8 +114,9 @@ static void drawrect(int x0, int y0, int x1, int y1, uint8_t bg, uint8_t fg, int
 static void drawtext(int x,int y, const char* str, int maxw, uint8_t bg, uint8_t fg, int w, int h, addr_t vgatext_base);
 static void drawnumberinhex(int x,int y, uint32_t number, int maxw, uint8_t bg, uint8_t fg, int w, int h, addr_t vgatext_base);
 static void drawnumberindecimal(int x,int y, uint32_t number, int maxw, uint8_t bg, uint8_t fg, int w, int h, addr_t vgatext_base);
+static void render_counter(uint32_t num_keypresses, int w, int h, addr_t vgatext_base);
 
-void render_counter(uint32_t num_keypresses, int w, int h, addr_t vgatext_base) {
+static void render_counter(uint32_t num_keypresses, int w, int h, addr_t vgatext_base) {
   const char* counter_description = " Key Count ";
   const char* space = " ";
   drawtext(0, 0, counter_description, 11, BROWN, WHITE + 8, w, h, vgatext_base);
@@ -117,6 +139,11 @@ void render_statusbar(const char * heading, int w, int h, addr_t vgatext_base) {
 // Given a render state, we need to write it into vgatext buffer
 //
 void render(const renderstate_t& state, int w, int h, addr_t vgatext_base){
+  // Print the shell contents
+  for(int i = 0; i < 25; i++) {
+    drawtext(0, i, state.contents[i], 80, BLACK, GREEN, w, h, vgatext_base);
+  }
+
   render_statusbar(state.heading, w, h, vgatext_base);
   render_counter(state.num_keypresses, w, h, vgatext_base);
 
@@ -203,4 +230,12 @@ static void strcpy(char *source, char *target) {
     i++;
     target[i] = source[i];
   } while(source[i] != '\0');
+}
+
+static int max(int a, int b) {
+  if (a > b) {
+    return a;
+  } else {
+    return b;
+  }
 }
