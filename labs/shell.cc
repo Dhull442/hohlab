@@ -117,11 +117,21 @@ int read_num(char *num_string, int string_length) {
   return result;
 }
 
+static int int2string(char* input_string, int n) {
+  int length = 0;
+  while(n > 0) {
+    input_string[10 - (++length)] = '0' + (n % 10);
+    n /= 10;
+  }
+  return length;
+}
+
 void exec_fib(char* command, int command_length, shellstate_t& stateinout) {
   int num = read_num(command + 4, command_length - 4);
   hoh_debug(num);
   if (num == -1) {
     hoh_debug("Invalid fib args");
+    return;
     // exec_invalid(stateinout);
   }
   // Compute the fibonacci number
@@ -139,12 +149,35 @@ void exec_fib(char* command, int command_length, shellstate_t& stateinout) {
   }
 
   // Print ans on the terminal
-  int length = 0;
+  
   char ans_string[10];
-  while(ans > 0) {
-    ans_string[10 - (++length)] = '0' + (ans % 10);
-    ans /= 10;
+  int length = int2string(ans_string, ans);
+
+  // Print the answer string to the terminal
+  for(int i = 10 - length; i < 10; i++) {
+    stateinout.contents[stateinout.content_ptr][i - 10 + length] = ans_string[i];
   }
+  for(int i = length; i < 80; i++) {
+    stateinout.contents[stateinout.content_ptr][i] = ' ';
+  }
+  stateinout.content_ptr++;
+}
+
+void exec_prime(char* command, int command_length, shellstate_t& stateinout) {
+  int num = read_num(command + 6, command_length - 6);
+  hoh_debug(num);
+  if (num == -1) {
+    hoh_debug("Invalid prime args");
+    // exec_invalid(stateinout);
+    return;
+  }
+  // Compute the nth prime number
+  int ans = num;
+
+  // Print ans on the terminal
+  
+  char ans_string[10];
+  int length = int2string(ans_string, ans);
 
   // Print the answer string to the terminal
   for(int i = 10 - length; i < 10; i++) {
@@ -166,7 +199,7 @@ void exec(char* command, int command_length, shellstate_t& stateinout) {
     hoh_debug("echo called");
     exec_echo(command, command_length, stateinout);
   } else if (command_length >= 6 && strcompare(command, prime, 6)) {
-    // exec_prime(command, command_length, shellstate_t& stateinout);
+    exec_prime(command, command_length, stateinout);
   } else if (command_length >= 4 && strcompare(command, fib, 4)) {
     hoh_debug("fib called");
     exec_fib(command, command_length, stateinout);
