@@ -144,9 +144,21 @@ void exec_fib(char* command, int command_length, shellstate_t& stateinout) {
   hoh_debug(num);
   if (num == -1) {
     hoh_debug("Invalid fib args");
+    char error_msg[] = "Invalid argument to fib";
+    int error_msg_length = 23;
+    exec_echo(error_msg, error_msg_length, stateinout);
+    char help_msg[] = "Syntax: fib <integer>";
+    int help_msg_length = 21;
+    exec_echo(help_msg, help_msg_length, stateinout);
+    return; 
+  } else if (num > 46) {
+    // Send overflow message
+    char error_msg[] = "ERROR: integer overflow. Argument to fib should be atmost 46.";
+    int error_msg_length = 61;
+    exec_echo(error_msg, error_msg_length, stateinout);
     return;
-    exec_invalid(stateinout);
   }
+
   // Compute the fibonacci number
   unsigned int ans = -1, ans_1 = -1;
   if (num <= 2) {
