@@ -214,6 +214,29 @@ void exec_prime(char* command, int command_length, shellstate_t& stateinout) {
   stateinout.content_ptr++;
 }
 
+void exec_welcome(shellstate_t& stateinout) {
+  // Print the welcome text
+  char greeting_text[] = "Welcome to";
+  int greeting_text_size = 10;
+  exec_echo(greeting_text, greeting_text_size, stateinout);
+  char welcome_text[45*5 + 1] = "eeeee eeee eeeee eeeee e   e eeee e     e    8     8    8   8 8     8   8 8    8     8    8eeee 8eee 8eee8 8eeee 8eee8 8eee 8e    8e      88 88   88  8    88 88  8 88   88    88   8ee88 88ee 88  8 8ee88 88  8 88ee 88eee 88eee";
+  for(int i = 0; i < 5; i++) {
+    exec_echo(welcome_text + i * 45, 45, stateinout);
+  }
+  char help_text[] = "You can try the commands";
+  int help_text_size = 24;
+  exec_echo(help_text, help_text_size, stateinout);
+  char echo_text[] = "echo <string> - prints string to console";
+  int echo_text_size = 40;
+  exec_echo(echo_text, echo_text_size, stateinout);
+  char fib_text[] = "fib <integer N> - prints the Nth fibonnaci number";
+  int fib_text_size = 49;
+  exec_echo(fib_text, fib_text_size, stateinout);
+  char prime_text[] = "prime <integer N> - prints the Nth prime number";
+  int prime_text_size = 47;
+  exec_echo(prime_text, prime_text_size, stateinout);
+}
+
 void exec(char* command, int command_length, shellstate_t& stateinout) {
   // Declare the commands
   char echo[] = "echo ";
@@ -228,6 +251,8 @@ void exec(char* command, int command_length, shellstate_t& stateinout) {
   } else if (command_length >= 4 && strcompare(command, fib, 4)) {
     hoh_debug("fib called");
     exec_fib(command + 4, command_length - 4, stateinout);
+  } else if (command_length == 0) {
+    exec_welcome(stateinout);
   } else {
     exec_invalid(stateinout);
   }
