@@ -142,14 +142,11 @@ void exec_invalid(shellstate_t& stateinout) {
 void exec_fib(char* command, int command_length, shellstate_t& stateinout) {
   int num = read_num(command, command_length);
   hoh_debug(num);
-  if (num == -1) {
+  if (num <= 0) {
     hoh_debug("Invalid fib args");
-    char error_msg[] = "Invalid argument to fib";
-    int error_msg_length = 23;
+    char error_msg[] = "Invalid argument to fib. Enter integer between 1 and 46.";
+    int error_msg_length = 56;
     exec_echo(error_msg, error_msg_length, stateinout);
-    char help_msg[] = "Syntax: fib <integer>";
-    int help_msg_length = 21;
-    exec_echo(help_msg, help_msg_length, stateinout);
     return;
   } else if (num > 46) {
     // Send overflow message
@@ -193,10 +190,11 @@ void exec_fib(char* command, int command_length, shellstate_t& stateinout) {
 void exec_consume(char* command, int command_length, shellstate_t& stateinout) {
   int num = read_num(command, command_length);
   hoh_debug(num);
-  if (num == -1) {
-    hoh_debug("Invalid consume args");
+  if (num <= 0 || num >= 2000) {
+    char error_msg[] = "ERROR: Invalid arguments to consume. Please enter an integer between 1 and 2000.";
+    int error_msg_length = 80;
+    exec_echo(error_msg, error_msg_length, stateinout);
     return;
-    exec_invalid(stateinout);
   }
   int ans=100;
   int mod = 10000007;
@@ -226,30 +224,33 @@ void exec_consume(char* command, int command_length, shellstate_t& stateinout) {
 void exec_prime(char* command, int command_length, shellstate_t& stateinout) {
   int num = read_num(command, command_length);
   hoh_debug(num);
-  if (num == -1) {
-    hoh_debug("Invalid prime args");
-    exec_invalid(stateinout);
+  if (num <= 0 || num > 2000) {
+    char error_msg[] = "ERROR: Invalid arguments to prime. Please enter an integer between 1 and 2000.";
+    int error_msg_length = 78;
+    exec_echo(error_msg, error_msg_length, stateinout);
     return;
   }
   // Compute the nth prime number
   int ans = num;
-  if(num == 0)
+  if(num == 1) {
     ans = 2;
-  else{
-    int primes[num];
-    primes[0] = 2;
-    int nextind = 1;
+  } else {
+    int primes[num + 1];
+    primes[1] = 2;
+    int nextind = 2;
     for(int i=3;;i++){
       bool isprime = true;
-      for(int j=0;j<nextind && isprime;j++){
-        if(i%primes[j]==0)
+      for(int j=1;j<nextind && isprime;j++){
+        if(i%primes[j]==0) {
+          hoh_debug(i);
           isprime=false;
+        }
       }
       if(isprime){
         primes[nextind] = i;
         nextind++;
-        if(nextind == num){
-          ans = primes[num-1];
+        if(nextind == num + 1){
+          ans = primes[num];
           break;
         }
       }
