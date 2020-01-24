@@ -94,7 +94,7 @@ static bool strcompare(char *s1, char *s2, int length) {
 void exec_echo(char* command, int command_length, shellstate_t& stateinout) {
   // Append the string to the shell contents
   for(int i = 5; i < command_length; i++) {
-    stateinout.contents[stateinout.content_ptr][i - 5] = command[i]; 
+    stateinout.contents[stateinout.content_ptr][i - 5] = command[i];
   }
   for(int i = command_length - 5; i < 80; i++) {
     stateinout.contents[stateinout.content_ptr][i] = ' ';
@@ -150,9 +150,9 @@ void exec_fib(char* command, int command_length, shellstate_t& stateinout) {
   // Compute the fibonacci number
   int ans = -1, ans_1 = -1;
   if (num <= 2) {
-    ans = 1; 
+    ans = 1;
   } else {
-    ans = 1; 
+    ans = 1;
     ans_1 = 1;
     for(int i = 3; i <= num; i++) {
       int tmp = ans + ans_1;
@@ -162,7 +162,42 @@ void exec_fib(char* command, int command_length, shellstate_t& stateinout) {
   }
 
   // Print ans on the terminal
-  
+
+  char ans_string[10];
+  int length = int2string(ans_string, ans);
+
+  // Print the answer string to the terminal
+  for(int i = 10 - length; i < 10; i++) {
+    stateinout.contents[stateinout.content_ptr][i - 10 + length] = ans_string[i];
+  }
+  for(int i = length; i < 80; i++) {
+    stateinout.contents[stateinout.content_ptr][i] = ' ';
+  }
+  stateinout.content_ptr++;
+}
+
+
+
+void exec_consume(char* command, int command_length, shellstate_t& stateinout) {
+  int num = read_num(command + 8, command_length - 8);
+  hoh_debug(num);
+  if (num == -1) {
+    hoh_debug("Invalid consume args");
+    return;
+    exec_invalid(stateinout);
+  }
+  int ans=100;
+  int mod = 10000007;
+  for(int i=0;i<num;i++){
+    for(int j=0;j<num;j++){
+      for(int k=0;k<num;k++){
+        ans = 2*ans % mod;
+      }
+    }
+  }
+
+  // Print ans on the terminal
+
   char ans_string[10];
   int length = int2string(ans_string, ans);
 
@@ -186,9 +221,32 @@ void exec_prime(char* command, int command_length, shellstate_t& stateinout) {
   }
   // Compute the nth prime number
   int ans = num;
+  if(num == 0)
+    ans = 2;
+  else{
+    int primes[num];
+    primes[0] = 2;
+    int nextind = 1;
+    for(int i=3;;i++){
+      bool isprime = true;
+      for(int j=0;j<nextind && isprime;j++){
+        if(i%primes[j]==0)
+          isprime=false;
+      }
+      if(isprime){
+        primes[nextind] = i;
+        nextind++;
+        if(nextind == num){
+          ans = primes[num-1];
+          break;
+        }
+      }
+    }
+  }
+
 
   // Print ans on the terminal
-  
+
   char ans_string[10];
   int length = int2string(ans_string, ans);
 
@@ -207,6 +265,7 @@ void exec(char* command, int command_length, shellstate_t& stateinout) {
   char echo[] = "echo ";
   char prime[] = "prime ";
   char fib[] = "fib ";
+  char consume[] = "consume ";
 
   if (command_length >= 5 && strcompare(command, echo, 5)) {
     hoh_debug("echo called");
@@ -216,6 +275,9 @@ void exec(char* command, int command_length, shellstate_t& stateinout) {
   } else if (command_length >= 4 && strcompare(command, fib, 4)) {
     hoh_debug("fib called");
     exec_fib(command, command_length, stateinout);
+  } else if (command_length >= 8 && strcompare(command,consume,8)){
+    hoh_debug("consume time called");
+    exec_consume(command, command_length, stateinout);
   } else {
     exec_invalid(stateinout);
   }
@@ -280,11 +342,11 @@ void shell_render(const shellstate_t& shell, renderstate_t& render){
     render.heading[i] = shell.heading[i];
   }
 
-  // Compute the display contents 
+  // Compute the display contents
   int beg = max(0, shell.content_ptr - 24);
   for(int i = 0; i < 24; i++) {
     if (i + beg < shell.content_ptr) {
-      // Copy the string 
+      // Copy the string
       for(int j = 0; j < 80; j++) {
         render.contents[i][j] = shell.contents[i + beg][j];
       }
@@ -301,14 +363,14 @@ void shell_render(const shellstate_t& shell, renderstate_t& render){
     render.command_text[i] = shell.command_text[i-1];
   }
   for(int i = shell.command_ptr + 1; i < 80; i++) {
-    render.command_text[i] = ' '; 
+    render.command_text[i] = ' ';
   }
 
   // Compute the cursor position
   render.cursor_position_x = 1 + shell.command_ptr;
   render.cursor_position_y = 24;
 }
- 
+
 
 //
 // compare a and b
