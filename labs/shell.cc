@@ -93,10 +93,10 @@ static bool strcompare(char *s1, char *s2, int length) {
 
 void exec_echo(char* command, int command_length, shellstate_t& stateinout) {
   // Append the string to the shell contents
-  for(int i = 5; i < command_length; i++) {
-    stateinout.contents[stateinout.content_ptr][i - 5] = command[i];
+  for(int i = 0; i < command_length; i++) {
+    stateinout.contents[stateinout.content_ptr][i] = command[i];
   }
-  for(int i = command_length - 5; i < 80; i++) {
+  for(int i = command_length; i < 80; i++) {
     stateinout.contents[stateinout.content_ptr][i] = ' ';
   }
   stateinout.content_ptr++;
@@ -140,22 +140,34 @@ void exec_invalid(shellstate_t& stateinout) {
 }
 
 void exec_fib(char* command, int command_length, shellstate_t& stateinout) {
-  int num = read_num(command + 4, command_length - 4);
+  int num = read_num(command, command_length);
   hoh_debug(num);
   if (num == -1) {
     hoh_debug("Invalid fib args");
+    char error_msg[] = "Invalid argument to fib";
+    int error_msg_length = 23;
+    exec_echo(error_msg, error_msg_length, stateinout);
+    char help_msg[] = "Syntax: fib <integer>";
+    int help_msg_length = 21;
+    exec_echo(help_msg, help_msg_length, stateinout);
     return;
-    exec_invalid(stateinout);
+  } else if (num > 46) {
+    // Send overflow message
+    char error_msg[] = "ERROR: integer overflow. Argument to fib should be atmost 46.";
+    int error_msg_length = 61;
+    exec_echo(error_msg, error_msg_length, stateinout);
+    return;
   }
+
   // Compute the fibonacci number
-  int ans = -1, ans_1 = -1;
+  unsigned int ans = -1, ans_1 = -1;
   if (num <= 2) {
     ans = 1;
   } else {
     ans = 1;
     ans_1 = 1;
     for(int i = 3; i <= num; i++) {
-      int tmp = ans + ans_1;
+      unsigned int tmp = ans + ans_1;
       ans_1 = ans;
       ans = tmp;
     }
@@ -179,7 +191,7 @@ void exec_fib(char* command, int command_length, shellstate_t& stateinout) {
 
 
 void exec_consume(char* command, int command_length, shellstate_t& stateinout) {
-  int num = read_num(command + 8, command_length - 8);
+  int num = read_num(command, command_length);
   hoh_debug(num);
   if (num == -1) {
     hoh_debug("Invalid consume args");
@@ -212,7 +224,7 @@ void exec_consume(char* command, int command_length, shellstate_t& stateinout) {
 }
 
 void exec_prime(char* command, int command_length, shellstate_t& stateinout) {
-  int num = read_num(command + 6, command_length - 6);
+  int num = read_num(command, command_length);
   hoh_debug(num);
   if (num == -1) {
     hoh_debug("Invalid prime args");
@@ -260,6 +272,32 @@ void exec_prime(char* command, int command_length, shellstate_t& stateinout) {
   stateinout.content_ptr++;
 }
 
+void exec_welcome(shellstate_t& stateinout) {
+  // Print the welcome text
+  char greeting_text[] = "Welcome to";
+  int greeting_text_size = 10;
+  exec_echo(greeting_text, greeting_text_size, stateinout);
+  char welcome_text[45*5 + 1] = "eeeee eeee eeeee eeeee e   e eeee e     e    8     8    8   8 8     8   8 8    8     8    8eeee 8eee 8eee8 8eeee 8eee8 8eee 8e    8e      88 88   88  8    88 88  8 88   88    88   8ee88 88ee 88  8 8ee88 88  8 88ee 88eee 88eee";
+  for(int i = 0; i < 5; i++) {
+    exec_echo(welcome_text + i * 45, 45, stateinout);
+  }
+  char help_text[] = "You can try the commands";
+  int help_text_size = 24;
+  exec_echo(help_text, help_text_size, stateinout);
+  char echo_text[] = "echo <string> - prints string to console";
+  int echo_text_size = 40;
+  exec_echo(echo_text, echo_text_size, stateinout);
+  char fib_text[] = "fib <integer N> - prints the Nth fibonnaci number";
+  int fib_text_size = 49;
+  exec_echo(fib_text, fib_text_size, stateinout);
+  char prime_text[] = "prime <integer N> - prints the Nth prime number";
+  int prime_text_size = 47;
+  exec_echo(prime_text, prime_text_size, stateinout);
+  char consume_text[] = "consume <integer N> - consumes time n^3";
+  int consume_text_size = 39;
+  exec_echo(consume_text, consume_text_size, stateinout);
+}
+
 void exec(char* command, int command_length, shellstate_t& stateinout) {
   // Declare the commands
   char echo[] = "echo ";
@@ -269,15 +307,17 @@ void exec(char* command, int command_length, shellstate_t& stateinout) {
 
   if (command_length >= 5 && strcompare(command, echo, 5)) {
     hoh_debug("echo called");
-    exec_echo(command, command_length, stateinout);
+    exec_echo(command + 5, command_length - 5, stateinout);
   } else if (command_length >= 6 && strcompare(command, prime, 6)) {
-    exec_prime(command, command_length, stateinout);
+    exec_prime(command + 6, command_length - 6, stateinout);
   } else if (command_length >= 4 && strcompare(command, fib, 4)) {
     hoh_debug("fib called");
-    exec_fib(command, command_length, stateinout);
+    exec_fib(command + 4, command_length -4, stateinout);
   } else if (command_length >= 8 && strcompare(command,consume,8)){
     hoh_debug("consume time called");
-    exec_consume(command, command_length, stateinout);
+    exec_consume(command + 8, command_length - 8, stateinout);
+  } else if (command_length == 0) {
+    exec_welcome(stateinout);
   } else {
     exec_invalid(stateinout);
   }
@@ -406,7 +446,7 @@ static void render_statusbar(const char * heading, int w, int h, addr_t vgatext_
   }
   statusbar[80] = '\0';
   drawtext(0, 0, statusbar, 80, CYAN, CYAN, w, h, vgatext_base);
-  drawtext(0, 0, heading, 11, CYAN, WHITE + 8, w, h, vgatext_base);
+  drawtext(40, 0, heading, 11, CYAN, WHITE + 8, w, h, vgatext_base);
 }
 
 //
