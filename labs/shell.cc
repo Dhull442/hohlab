@@ -93,10 +93,10 @@ static bool strcompare(char *s1, char *s2, int length) {
 
 void exec_echo(char* command, int command_length, shellstate_t& stateinout) {
   // Append the string to the shell contents
-  for(int i = 5; i < command_length; i++) {
-    stateinout.contents[stateinout.content_ptr][i - 5] = command[i]; 
+  for(int i = 0; i < command_length; i++) {
+    stateinout.contents[stateinout.content_ptr][i] = command[i]; 
   }
-  for(int i = command_length - 5; i < 80; i++) {
+  for(int i = command_length; i < 80; i++) {
     stateinout.contents[stateinout.content_ptr][i] = ' ';
   }
   stateinout.content_ptr++;
@@ -140,7 +140,7 @@ void exec_invalid(shellstate_t& stateinout) {
 }
 
 void exec_fib(char* command, int command_length, shellstate_t& stateinout) {
-  int num = read_num(command + 4, command_length - 4);
+  int num = read_num(command, command_length);
   hoh_debug(num);
   if (num == -1) {
     hoh_debug("Invalid fib args");
@@ -148,14 +148,14 @@ void exec_fib(char* command, int command_length, shellstate_t& stateinout) {
     exec_invalid(stateinout);
   }
   // Compute the fibonacci number
-  int ans = -1, ans_1 = -1;
+  unsigned int ans = -1, ans_1 = -1;
   if (num <= 2) {
     ans = 1; 
   } else {
     ans = 1; 
     ans_1 = 1;
     for(int i = 3; i <= num; i++) {
-      int tmp = ans + ans_1;
+      unsigned int tmp = ans + ans_1;
       ans_1 = ans;
       ans = tmp;
     }
@@ -210,12 +210,12 @@ void exec(char* command, int command_length, shellstate_t& stateinout) {
 
   if (command_length >= 5 && strcompare(command, echo, 5)) {
     hoh_debug("echo called");
-    exec_echo(command, command_length, stateinout);
+    exec_echo(command + 5, command_length - 5, stateinout);
   } else if (command_length >= 6 && strcompare(command, prime, 6)) {
-    exec_prime(command, command_length, stateinout);
+    exec_prime(command + 6, command_length - 6, stateinout);
   } else if (command_length >= 4 && strcompare(command, fib, 4)) {
     hoh_debug("fib called");
-    exec_fib(command, command_length, stateinout);
+    exec_fib(command + 4, command_length - 4, stateinout);
   } else {
     exec_invalid(stateinout);
   }
