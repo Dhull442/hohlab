@@ -174,7 +174,6 @@ void exec_fib(char* command, int command_length, shellstate_t& stateinout) {
   }
 
   // Print ans on the terminal
-  
   char ans_string[10];
   int length = int2string(ans_string, ans);
 
@@ -381,7 +380,7 @@ static void render_statusbar(const char * heading, int w, int h, addr_t vgatext_
   }
   statusbar[80] = '\0';
   drawtext(0, 0, statusbar, 80, CYAN, CYAN, w, h, vgatext_base);
-  drawtext(0, 0, heading, 11, CYAN, WHITE + 8, w, h, vgatext_base);
+  drawtext(40, 0, heading, 11, CYAN, WHITE + 8, w, h, vgatext_base);
 }
 
 //
