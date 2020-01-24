@@ -411,12 +411,31 @@ void shell_render(const shellstate_t& shell, renderstate_t& render){
   render.cursor_position_y = 24;
 }
 
-
+bool conststrcompare(const char *s1, const char *s2, int length) {
+  for(int i = 0; i < length; i++) {
+    if (s1[i] != s2[i]) {
+      return false;
+    }
+  }
+  return true;
+}
 //
 // compare a and b
 //
 bool render_eq(const renderstate_t& a, const renderstate_t& b){
-  return a.num_keypresses == b.num_keypresses;
+  if(a.num_keypresses==b.num_keypresses){
+    if(conststrcompare(a.command_text,b.command_text,79)){
+      if(a.cursor_position_x==b.cursor_position_x && a.cursor_position_y == b.cursor_position_y){
+        for(int i=0;i<24;i++){
+          if(!conststrcompare(a.contents[i],b.contents[i],80)){
+            return false;
+          }
+        }
+        return true;
+      }
+    }
+  }
+  return false;
 }
 
 static void fillrect(int x0, int y0, int x1, int y1, uint8_t bg, uint8_t fg, int w, int h, addr_t vgatext_base);
