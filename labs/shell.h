@@ -12,6 +12,9 @@ struct shellstate_t{
     char command_text[80];
     // The pointer to the command text buffer
     int command_ptr;
+    // Stores if the coroutine is in fact active
+    bool coro_active;
+    int coro_arg;
 };
 
 struct renderstate_t{

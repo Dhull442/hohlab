@@ -27,6 +27,7 @@ void shell_init(shellstate_t& state){
   }
   state.content_ptr = 1;
   state.command_ptr = 0;
+  state.coro_active = 0;
 }
 
 //
@@ -185,6 +186,18 @@ void exec_fib(char* command, int command_length, shellstate_t& stateinout) {
   stateinout.content_ptr++;
 }
 
+void exec_consume2(char* command, int command_length, shellstate_t& stateinout) {
+  int num = read_num(command, command_length);
+  if (num <= 0 || num >= 2000) {
+    char error_msg[] = "ERROR: Invalid arguments to consume2. Please enter an integer between 1 and 2000.";
+    int error_msg_length = 80;
+    exec_echo(error_msg, error_msg_length, stateinout);
+    return;
+  }
+  // Activate the coroutine
+  stateinout.coro_active = true;
+  stateinout.coro_arg = num;
+}
 
 
 void exec_consume(char* command, int command_length, shellstate_t& stateinout) {
@@ -196,7 +209,7 @@ void exec_consume(char* command, int command_length, shellstate_t& stateinout) {
     exec_echo(error_msg, error_msg_length, stateinout);
     return;
   }
-  int ans=100;
+  int ans=1;
   int mod = 10000007;
   for(int i=0;i<num;i++){
     for(int j=0;j<num;j++){
@@ -305,6 +318,7 @@ void exec(char* command, int command_length, shellstate_t& stateinout) {
   char prime[] = "prime ";
   char fib[] = "fib ";
   char consume[] = "consume ";
+  char consume2[] = "consume2 ";
 
   if (command_length >= 5 && strcompare(command, echo, 5)) {
     hoh_debug("echo called");
@@ -317,6 +331,9 @@ void exec(char* command, int command_length, shellstate_t& stateinout) {
   } else if (command_length >= 8 && strcompare(command,consume,8)){
     hoh_debug("consume time called");
     exec_consume(command + 8, command_length - 8, stateinout);
+  } else if (command_length >= 9 && strcompare(command, consume2, 9)) {
+    hoh_debug("async consume time called");
+    exec_consume2(command + 9, command_length - 9, stateinout);
   } else if (command_length == 0) {
     exec_welcome(stateinout);
   } else {
