@@ -27,7 +27,8 @@ void shell_init(shellstate_t& state){
   }
   state.content_ptr = 1;
   state.command_ptr = 0;
-  state.coro_active = 0;
+  state.f_req = 0;
+  state.f_state = 0;
 }
 
 //
@@ -193,10 +194,16 @@ void exec_consume2(char* command, int command_length, shellstate_t& stateinout) 
     int error_msg_length = 80;
     exec_echo(error_msg, error_msg_length, stateinout);
     return;
+  } else if (stateinout.f_state != 0 || stateinout.f_req != 0) {
+    char error_msg[] = "ERROR: A previous consume2 command is already running.";
+    int error_msg_length = 54;
+    exec_echo(error_msg, error_msg_length, stateinout);
+    return;
   }
-  // Activate the coroutine
-  stateinout.coro_active = true;
-  stateinout.coro_arg = num;
+
+  // Activate the state machine
+  stateinout.f_req = 1;
+  stateinout.f_arg = num;
 }
 
 

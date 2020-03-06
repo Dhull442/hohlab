@@ -13,8 +13,15 @@ struct shellstate_t{
     // The pointer to the command text buffer
     int command_ptr;
     // Stores if the coroutine is in fact active
-    bool coro_active;
-    int coro_arg;
+    bool f_done;
+    int f_ret;
+    // Request computation from the shell
+    bool f_req;
+    // State = 0 => ready
+    // State = 1 => busy
+    // State = 2 => done
+    int f_state;
+    int f_arg;
 };
 
 struct renderstate_t{
