@@ -102,7 +102,7 @@ void g(addr_t* pmain_stack, addr_t* pf_stack, int* pret, bool* pdone, int* num) 
     }
 }
 
-void shell_step_fiber_scheduler(shellstate_t& shellstate, addr_t stackptrs[], size_t stackptrs_size, addr_t arrays, size_t arrays_size){
+void shell_step_fiber_scheduler(shellstate_t& shellstate, addr_t& main_stack, preempt_t& preempt, addr_t stackptrs[], size_t stackptrs_size, addr_t arrays, size_t arrays_size, dev_lapic_t& lapic){
     size_t thread_array_size = arrays_size / stackptrs_size;
     
     // Check the request signals for h and g resp

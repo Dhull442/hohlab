@@ -34,7 +34,7 @@ void fiber(addr_t* pmain_stack, addr_t* pf_stack, int* pret, bool* pdone, int* n
   }
 }
 
-void shell_step_fiber(shellstate_t& shellstate, addr_t& main_stack, addr_t& f_stack, addr_t f_array, uint32_t f_arraysize){
+void shell_step_fiber(shellstate_t& shellstate, addr_t& main_stack, preempt_t& preempt, addr_t& f_stack, addr_t f_array, uint32_t f_arraysize, dev_lapic_t& lapic){
   // Make the state machine here
   if (shellstate.fiber_state == 0) {
     if (shellstate.fiber_req == 1) {
