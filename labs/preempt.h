@@ -26,7 +26,6 @@
 struct preempt_t{
   // your data structure, if any
   addr_t saved_stack; //feel free to change it - provided as an example
-
 };
 
 
@@ -41,20 +40,39 @@ struct preempt_t{
 //
 #  define  _ring0_preempt(_name,_f)            \
   __asm(                                       \
-      "  .text                            \n\t"\
-      " " STR(_name) ":                   \n\t"\
-      "  pushl %edx                       \n\t"\
-      "  pushl %ecx                       \n\t"\
-      "  pushl %eax                       \n\t"\
-      "  call " STR(_f) "                 \n\t"\
-      "  popl  %eax                       \n\t"\
-      "  popl  %ecx                       \n\t"\
-      "  popl  %edx                       \n\t"\
-      "                                   \n\t"\
-      "  # insert your code here          \n\t"\
-      "                                   \n\t"\
-      "                                   \n\t"\
-      "  jmp iret_toring0                 \n\t"\
+      "  .text                                      \n\t"\
+      " " STR(_name) ":                             \n\t"\
+      "  pushl %edx                                 \n\t"\
+      "  pushl %ecx                                 \n\t"\
+      "  pushl %eax                                 \n\t"\
+      "  call " STR(_f) "                           \n\t"\
+      "  popl  %eax                                 \n\t"\
+      "  popl  %ecx                                 \n\t"\
+      "  popl  %edx                                 \n\t"\
+      "  pushl %eax                                 \n\t"\
+      "  pushl %ebx                                 \n\t"\
+      "  pushl %ecx                                 \n\t"\
+      "  pushl %edx                                 \n\t"\
+      "  pushl %ebp                                 \n\t"\
+      "  movl %esp, %ebp                            \n\t"\
+      "  sub %esp, 512                              \n\t"\
+      "  and %esp, 0xffffff00                       \n\t"\
+      "  pushl %ebp                                 \n\t"\
+      "  fxsave (%esp)                              \n\t"\
+      "  pushl $1f                                  \n\t"\
+      "  mov %gs:" STR(core_offset_preempt) ", %eax \n\t"\
+      "  movl %esp, (%eax)                          \n\t"\
+      "  mov %gs:"STR(core_offset_mainstack) ",%eax \n\t"\
+      "  movl (%eax), %esp                          \n\t"\
+      "  ret                                        \n\t"\
+      "1:fxrstor (%esp)                             \n\t"\
+      "  popl %esp                                  \n\t"\
+      " popl %ebp                                   \n\t"\
+      " popl %edx                                   \n\t"\
+      " popl %ecx                                   \n\t"\
+      " popl %ebx                                   \n\t"\
+      " popl %eax                                   \n\t"\
+      " jmp iret_toring0                           \n\t"\
       )                                        \
 
 

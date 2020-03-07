@@ -22,7 +22,6 @@ void fiber(addr_t* pmain_stack, addr_t* pf_stack, int* pret, bool* pdone, int* n
           for(k = 0; k < *num; k++) {
               ret = (2 * ret) % 10000007;
               done=false; 
-              stack_saverestore(f_stack, main_stack);
           }
       }
   }
@@ -30,7 +29,6 @@ void fiber(addr_t* pmain_stack, addr_t* pf_stack, int* pret, bool* pdone, int* n
   // Computation done -- return
   for(;;) {
     done = true;
-    stack_saverestore(f_stack, main_stack);
   }
 }
 
@@ -53,8 +51,12 @@ void shell_step_fiber(shellstate_t& shellstate, addr_t& main_stack, preempt_t& p
       shellstate.fiber_state = 2;
     } else {
       hoh_debug("Calling the fiber again");
+      // Set the timer
+      lapic.reset_timer_count(10);
       // Call the coroutine again
       stack_saverestore(main_stack,f_stack);
+      // Context switched out
+      lapic.reset_timer_count(0);
     }
   } else if (shellstate.fiber_state == 2) {
     hoh_debug("Fiber done");
