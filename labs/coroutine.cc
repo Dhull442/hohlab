@@ -83,10 +83,6 @@ void shell_step_coroutine(shellstate_t& shellstate, coroutine_t& f_coro, f_t& f_
             shellstate.contents[shellstate.content_ptr][i] = ' ';
         }
         shellstate.content_ptr++;
-
-        // Go back to the ready state
-        hoh_debug("Going back to ready state");
-        shellstate.f_state = 0;
     }
 }
 

@@ -22,6 +22,12 @@ struct shellstate_t{
     // State = 2 => done
     int f_state;
     int f_arg;
+    // State for the fiber
+    int fiber_state;
+    int fiber_arg;
+    bool fiber_req;
+    bool fiber_done;
+    int fiber_ret;
 };
 
 struct renderstate_t{

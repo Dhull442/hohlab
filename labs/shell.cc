@@ -187,6 +187,25 @@ void exec_fib(char* command, int command_length, shellstate_t& stateinout) {
   stateinout.content_ptr++;
 }
 
+void exec_consume3(char* command, int command_length, shellstate_t& stateinout) {
+  int num = read_num(command, command_length);
+  if (num <= 0 || num >= 2000) {
+    char error_msg[] = "ERROR: Invalid arguments to consume3. Please enter an integer between 1 and 2000.";
+    int error_msg_length = 80;
+    exec_echo(error_msg, error_msg_length, stateinout);
+    return;
+  } else if (stateinout.fiber_state != 0 || stateinout.fiber_req != 0) {
+    char error_msg[] = "ERROR: A previous consume3 command is already running.";
+    int error_msg_length = 54;
+    exec_echo(error_msg, error_msg_length, stateinout);
+    return;
+  }
+
+  // Activate the state machine
+  stateinout.fiber_req = 1;
+  stateinout.fiber_arg = num;
+}
+
 void exec_consume2(char* command, int command_length, shellstate_t& stateinout) {
   int num = read_num(command, command_length);
   if (num <= 0 || num >= 2000) {
@@ -326,6 +345,7 @@ void exec(char* command, int command_length, shellstate_t& stateinout) {
   char fib[] = "fib ";
   char consume[] = "consume ";
   char consume2[] = "consume2 ";
+  char consume3[] = "consume3 ";
 
   if (command_length >= 5 && strcompare(command, echo, 5)) {
     hoh_debug("echo called");
@@ -341,6 +361,9 @@ void exec(char* command, int command_length, shellstate_t& stateinout) {
   } else if (command_length >= 9 && strcompare(command, consume2, 9)) {
     hoh_debug("async consume time called");
     exec_consume2(command + 9, command_length - 9, stateinout);
+  } else if (command_length >= 9 && strcompare(command, consume3, 9)) {
+    hoh_debug("fiber consume time called");
+    exec_consume3(command + 9, command_length - 9, stateinout);
   } else if (command_length == 0) {
     exec_welcome(stateinout);
   } else {
