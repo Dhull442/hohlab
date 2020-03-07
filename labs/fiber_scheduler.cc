@@ -49,6 +49,59 @@ void h(addr_t* pmain_stack, addr_t* pf_stack, int* pret, bool* pdone, int* num) 
   }
 }
 
+void recfib(addr_t* pmain_stack, addr_t* pf_stack, int* pret, bool* pdone, int* num) {
+    addr_t& main_stack = *pmain_stack; // boilerplate: to ease the transition from existing code
+    addr_t& f_stack    = *pf_stack;
+    int& ret           = *pret;
+    bool& done         = *pdone;
+
+    if (*num <= 2) {
+        ret = 1;
+    } else {
+        int a = *num - 1;
+        int b = *num - 2;
+        int retval;
+        recfib(pmain_stack, pf_stack, &retval, pdone, &a);
+        ret = retval;
+        done = false;
+        stack_saverestore(f_stack, main_stack);
+        recfib(pmain_stack, pf_stack, &retval, pdone, &b);
+        ret += retval;
+        done = false;
+        stack_saverestore(f_stack, main_stack);
+    }
+}
+
+void g(addr_t* pmain_stack, addr_t* pf_stack, int* pret, bool* pdone, int* num) {
+    addr_t& main_stack = *pmain_stack; // boilerplate: to ease the transition from existing code
+    addr_t& f_stack    = *pf_stack;
+    int& ret           = *pret;
+    bool& done         = *pdone;
+
+    if (*num <= 2) {
+        ret = 1;
+    } else {
+        int a = *num - 1;
+        int b = *num - 2;
+        int retval;
+        recfib(pmain_stack, pf_stack, &retval, pdone, &a);
+        ret = retval;
+        done = false;
+        stack_saverestore(f_stack, main_stack);
+        recfib(pmain_stack, pf_stack, &retval, pdone, &b);
+        ret += retval;
+        done = false;
+        stack_saverestore(f_stack, main_stack);
+    }
+
+
+    // Computation done -- return
+    for(;;) {
+        done = true;
+        stack_saverestore(f_stack, main_stack);
+    }
+}
+
 void shell_step_fiber_scheduler(shellstate_t& shellstate, addr_t stackptrs[], size_t stackptrs_size, addr_t arrays, size_t arrays_size){
     size_t thread_array_size = arrays_size / stackptrs_size;
     
@@ -95,7 +148,7 @@ void shell_step_fiber_scheduler(shellstate_t& shellstate, addr_t stackptrs[], si
         shellstate.g_req = 0;
         
         // Initialize the stack here
-        stack_init5(stackptrs[free_idx + 1], arrays + (free_idx + 1) * thread_array_size, thread_array_size ,&h, &stackptrs[0], &stackptrs[free_idx + 1], &shellstate.thread_ret[free_idx], &shellstate.thread_done[free_idx], &shellstate.thread_args[free_idx]);
+        stack_init5(stackptrs[free_idx + 1], arrays + (free_idx + 1) * thread_array_size, thread_array_size ,&g, &stackptrs[0], &stackptrs[free_idx + 1], &shellstate.thread_ret[free_idx], &shellstate.thread_done[free_idx], &shellstate.thread_args[free_idx]);
     }
 
     // Execute the current function

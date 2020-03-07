@@ -198,6 +198,33 @@ void exec_fib(char* command, int command_length, shellstate_t& stateinout) {
   stateinout.content_ptr++;
 }
 
+void exec_recfib(char* command, int command_length, shellstate_t& stateinout) {
+  int num = read_num(command, command_length);
+  hoh_debug(num);
+  if (num <= 0) {
+    hoh_debug("Invalid fib args");
+    char error_msg[] = "Invalid argument to fib. Enter integer between 1 and 46.";
+    int error_msg_length = 56;
+    exec_echo(error_msg, error_msg_length, stateinout);
+    return;
+  } else if (num > 46) {
+    // Send overflow message
+    char error_msg[] = "ERROR: integer overflow. Argument to fib should be atmost 46.";
+    int error_msg_length = 61;
+    exec_echo(error_msg, error_msg_length, stateinout);
+    return;
+  } else if (stateinout.num_g >= 3 || stateinout.num_h + stateinout.num_g >= 5 || stateinout.g_req == 1) {
+    char error_msg[] = "ERROR: Too many commands are already in the queue";
+    int error_msg_length = 49;
+    exec_echo(error_msg, error_msg_length, stateinout);
+    return;
+  }
+
+  // Request the g function
+  stateinout.g_req = 1;
+  stateinout.g_arg = num;
+}
+
 void exec_consume3(char* command, int command_length, shellstate_t& stateinout) {
   int num = read_num(command, command_length);
   if (num <= 0 || num >= 2000) {
@@ -377,6 +404,7 @@ void exec(char* command, int command_length, shellstate_t& stateinout) {
   char consume2[] = "consume2 ";
   char consume3[] = "consume3 ";
   char consume4[] = "consume4 ";
+  char recfib[] = "recfib ";
 
   if (command_length >= 5 && strcompare(command, echo, 5)) {
     hoh_debug("echo called");
@@ -398,6 +426,9 @@ void exec(char* command, int command_length, shellstate_t& stateinout) {
   } else if (command_length >= 9 && strcompare(command, consume4, 9)) {
     hoh_debug("fiber consume time called");
     exec_consume4(command + 9, command_length - 9, stateinout);
+  } else if (command_length >= 7 && strcompare(command, recfib, 7)) {
+    hoh_debug("recfib called");
+    exec_recfib(command + 7, command_length - 7, stateinout);
   } else if (command_length == 0) {
     exec_welcome(stateinout);
   } else {
