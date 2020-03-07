@@ -1,2 +1,9 @@
-_tmp
+.*
+tags
+cscope.out
+a.out
+*.exe
+*.o
 *.log
+_tmp
+*.hi
