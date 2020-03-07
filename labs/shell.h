@@ -28,6 +28,11 @@ struct shellstate_t{
     bool fiber_req;
     bool fiber_done;
     int fiber_ret;
+
+    // States for the fiber scheduler
+    int h_req, g_req, num_h, num_g, h_arg, g_arg, curr_idx;
+    bool thread_occupied[5], thread_type[5], thread_done[5];
+    int thread_args[5], thread_ret[5];
 };
 
 struct renderstate_t{

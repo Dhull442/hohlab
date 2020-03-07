@@ -29,6 +29,17 @@ void shell_init(shellstate_t& state){
   state.command_ptr = 0;
   state.f_req = 0;
   state.f_state = 0;
+  state.fiber_req = 0;
+
+  // Initialize state for the fiber
+  state.h_req = 0;
+  state.g_req = 0;
+  for (int i = 0; i < 5; i++) {
+    state.thread_occupied[i] = false;
+  }
+  state.num_h = 0;
+  state.num_g = 0;
+  state.curr_idx = 0;
 }
 
 //
@@ -206,6 +217,25 @@ void exec_consume3(char* command, int command_length, shellstate_t& stateinout) 
   stateinout.fiber_arg = num;
 }
 
+void exec_consume4(char* command, int command_length, shellstate_t& stateinout) {
+  int num = read_num(command, command_length);
+  if (num <= 0 || num >= 2000) {
+    char error_msg[] = "ERROR: Invalid arguments to consume3. Please enter an integer between 1 and 2000.";
+    int error_msg_length = 80;
+    exec_echo(error_msg, error_msg_length, stateinout);
+    return;
+  } else if (stateinout.num_h >= 3 || stateinout.num_h + stateinout.num_g >= 5 || stateinout.h_req == 1) {
+    char error_msg[] = "ERROR: Too many commands are already in the queue";
+    int error_msg_length = 49;
+    exec_echo(error_msg, error_msg_length, stateinout);
+    return;
+  }
+
+  // Request a fiber for consume4
+  stateinout.h_req = 1;
+  stateinout.h_arg = num;
+}
+
 void exec_consume2(char* command, int command_length, shellstate_t& stateinout) {
   int num = read_num(command, command_length);
   if (num <= 0 || num >= 2000) {
@@ -346,6 +376,7 @@ void exec(char* command, int command_length, shellstate_t& stateinout) {
   char consume[] = "consume ";
   char consume2[] = "consume2 ";
   char consume3[] = "consume3 ";
+  char consume4[] = "consume4 ";
 
   if (command_length >= 5 && strcompare(command, echo, 5)) {
     hoh_debug("echo called");
@@ -364,6 +395,9 @@ void exec(char* command, int command_length, shellstate_t& stateinout) {
   } else if (command_length >= 9 && strcompare(command, consume3, 9)) {
     hoh_debug("fiber consume time called");
     exec_consume3(command + 9, command_length - 9, stateinout);
+  } else if (command_length >= 9 && strcompare(command, consume4, 9)) {
+    hoh_debug("fiber consume time called");
+    exec_consume4(command + 9, command_length - 9, stateinout);
   } else if (command_length == 0) {
     exec_welcome(stateinout);
   } else {

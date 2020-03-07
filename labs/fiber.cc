@@ -29,7 +29,7 @@ void fiber(addr_t* pmain_stack, addr_t* pf_stack, int* pret, bool* pdone, int* n
 
   // Computation done -- return
   for(;;) {
-    ret = 0; done = true;
+    done = true;
     stack_saverestore(f_stack, main_stack);
   }
 }
