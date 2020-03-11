@@ -54,25 +54,31 @@ struct preempt_t{
       "  pushl %ecx                                 \n\t"\
       "  pushl %edx                                 \n\t"\
       "  pushl %ebp                                 \n\t"\
+      "  pushl %edi                                 \n\t"\
+      "  pushl %esi                                 \n\t"\
       "  movl %esp, %ebp                            \n\t"\
-      "  sub %esp, 512                              \n\t"\
-      "  and %esp, 0xffffff00                       \n\t"\
-      "  pushl %ebp                                 \n\t"\
+      "  sub $512, %esp                              \n\t"\
+      "  and $0xfffffff0, %esp                        \n\t"\
       "  fxsave (%esp)                              \n\t"\
+      "  pushl %ebp                                 \n\t"\
       "  pushl $1f                                  \n\t"\
-      "  mov %gs:" STR(core_offset_preempt) ", %eax \n\t"\
-      "  movl %esp, (%eax)                          \n\t"\
-      "  mov %gs:"STR(core_offset_mainstack) ",%eax \n\t"\
-      "  movl (%eax), %esp                          \n\t"\
+      "  movl %esp, %gs:" STR(core_offset_preempt) "   \n\t"\
+      "  movl %gs:" STR(core_offset_mainstack) ", %esp   \n\t"\
+      "  sti                                        \n\t"\
       "  ret                                        \n\t"\
-      "1:fxrstor (%esp)                             \n\t"\
-      "  popl %esp                                  \n\t"\
-      " popl %ebp                                   \n\t"\
-      " popl %edx                                   \n\t"\
-      " popl %ecx                                   \n\t"\
-      " popl %ebx                                   \n\t"\
-      " popl %eax                                   \n\t"\
-      " jmp iret_toring0                           \n\t"\
+      "1:                                           \n\t"\
+      "  popl %ebp                                  \n\t"\
+      "  fxrstor (%esp)                              \n\t"\
+      "  movl %ebp, %esp                            \n\t"\
+      "  popl %esi                                   \n\t"\
+      "  popl %edi                                   \n\t"\
+      "  popl %ebp                                   \n\t"\
+      "  popl %edx                                   \n\t"\
+      "  popl %ecx                                   \n\t"\
+      "  popl %ebx                                   \n\t"\
+      "  popl %eax                                   \n\t"\
+      "  sti                                        \n\t"\
+      "  jmp iret_toring0                           \n\t"\
       )                                        \
 
 

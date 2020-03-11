@@ -33,7 +33,6 @@
    "                   \n\t"                                         \
    "  movl  %%esp,(%0) \n\t"                                         \
    "  movl  (%1),%%esp \n\t"                                         \
-   "                   \n\t"                                         \
    "  ret              \n\t"                                         \
    "1:                 \n\t"                                         \
    "  popl %%ebp       \n\t"                                         \
