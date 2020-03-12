@@ -26,6 +26,7 @@
 struct preempt_t{
   // your data structure, if any
   addr_t saved_stack; //feel free to change it - provided as an example
+  int yielding;
 };
 
 
@@ -49,6 +50,9 @@ struct preempt_t{
       "  popl  %eax                                 \n\t"\
       "  popl  %ecx                                 \n\t"\
       "  popl  %edx                                 \n\t"\
+      "  cmp $1, %gs:" STR(core_offset_preempt + 4) "   \n\t"\
+      "  sti                                        \n\t"\
+      "  je iret_toring0                           \n\t"\
       "  pushl %eax                                 \n\t"\
       "  pushl %ebx                                 \n\t"\
       "  pushl %ecx                                 \n\t"\

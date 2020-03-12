@@ -7,3 +7,5 @@ a.out
 *.log
 _tmp
 *.hi
+.gdbinit
+peda*

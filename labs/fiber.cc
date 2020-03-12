@@ -9,7 +9,7 @@ static int int2string(char* input_string, int n) {
   return length;
 }
 
-void fiber(addr_t* pmain_stack, addr_t* pf_stack, int* pret, bool* pdone, int* num) {
+void fiber(addr_t* pmain_stack, addr_t* pf_stack, int* pret, bool* pdone, int* num, preempt_t* preempt) {
   hoh_debug("Beginning");
   addr_t& main_stack = *pmain_stack; // boilerplate: to ease the transition from existing code
   addr_t& f_stack    = *pf_stack;
@@ -21,9 +21,11 @@ void fiber(addr_t* pmain_stack, addr_t* pf_stack, int* pret, bool* pdone, int* n
   for(i = 0; i < *num; i++) {
       for(j = 0; j < *num; j++) {
           for(k = 0; k < *num; k++) {
-              hoh_debug("Looping");
+              // hoh_debug("Looping");
               ret = (2 * ret) % 10000007;
               done=false; 
+              // preempt->yielding = 1;
+              // stack_saverestore(f_stack,main_stack);
           }
       }
   }
@@ -41,7 +43,7 @@ void shell_step_fiber(shellstate_t& shellstate, addr_t& main_stack, preempt_t& p
     if (shellstate.fiber_req == 1) {
       hoh_debug("Request signal recvd");
       // Setup the stack and coroutine
-      stack_init5(preempt.saved_stack, f_array, f_arraysize, &fiber, &main_stack, &preempt.saved_stack, &shellstate.fiber_ret, &shellstate.fiber_done, &shellstate.fiber_arg);
+      stack_init6(preempt.saved_stack, f_array, f_arraysize, &fiber, &main_stack, &preempt.saved_stack, &shellstate.fiber_ret, &shellstate.fiber_done, &shellstate.fiber_arg, &preempt);
       // Change the state
       shellstate.fiber_req = 0;
       shellstate.fiber_state = 1;
@@ -56,6 +58,7 @@ void shell_step_fiber(shellstate_t& shellstate, addr_t& main_stack, preempt_t& p
       // Set the timer
       hoh_debug("Setting the timer");
       lapic.reset_timer_count(100);
+      preempt.yielding = 0;
       stack_saverestore(main_stack,preempt.saved_stack);
       lapic.reset_timer_count(0);
       hoh_debug("Stopping the timer");
