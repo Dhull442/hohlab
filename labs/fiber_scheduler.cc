@@ -24,6 +24,7 @@ static int int2string(char* input_string, int n) {
   return length;
 }
 
+// Function which will work based on the timer interrupt
 void h(addr_t* pmain_stack, addr_t* pf_stack, int* pret, bool* pdone, int* num) {
   addr_t& main_stack = *pmain_stack; // boilerplate: to ease the transition from existing code
   addr_t& f_stack    = *pf_stack;

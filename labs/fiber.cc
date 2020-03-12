@@ -43,7 +43,7 @@ void shell_step_fiber(shellstate_t& shellstate, addr_t& main_stack, preempt_t& p
     if (shellstate.fiber_req == 1) {
       hoh_debug("Request signal recvd");
       // Setup the stack and coroutine
-      stack_init6(preempt.saved_stack, f_array, f_arraysize, &fiber, &main_stack, &preempt.saved_stack, &shellstate.fiber_ret, &shellstate.fiber_done, &shellstate.fiber_arg, &preempt);
+      stack_init6(preempt.saved_stack[0], f_array, f_arraysize, &fiber, &main_stack, &preempt.saved_stack, &shellstate.fiber_ret, &shellstate.fiber_done, &shellstate.fiber_arg, &preempt);
       // Change the state
       shellstate.fiber_req = 0;
       shellstate.fiber_state = 1;
@@ -59,7 +59,8 @@ void shell_step_fiber(shellstate_t& shellstate, addr_t& main_stack, preempt_t& p
       hoh_debug("Setting the timer");
       lapic.reset_timer_count(100);
       preempt.yielding = 0;
-      stack_saverestore(main_stack,preempt.saved_stack);
+      preempt.curr_idx = 0;
+      stack_saverestore(main_stack,preempt.saved_stack[0]);
       lapic.reset_timer_count(0);
       hoh_debug("Stopping the timer");
     }

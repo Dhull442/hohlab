@@ -25,7 +25,8 @@
 
 struct preempt_t{
   // your data structure, if any
-  addr_t saved_stack; //feel free to change it - provided as an example
+  int curr_idx;
+  addr_t saved_stack[6]; //feel free to change it - provided as an example
   int yielding;
 };
 
@@ -50,7 +51,7 @@ struct preempt_t{
       "  popl  %eax                                 \n\t"\
       "  popl  %ecx                                 \n\t"\
       "  popl  %edx                                 \n\t"\
-      "  cmp $1, %gs:" STR(core_offset_preempt + 4) "   \n\t"\
+      "  cmp $1, %gs:" STR(core_offset_preempt + 28) "   \n\t"\
       "  sti                                        \n\t"\
       "  je iret_toring0                           \n\t"\
       "  pushl %eax                                 \n\t"\
@@ -66,8 +67,32 @@ struct preempt_t{
       "  fxsave (%esp)                              \n\t"\
       "  pushl %ebp                                 \n\t"\
       "  pushl $1f                                  \n\t"\
-      "  movl %esp, %gs:" STR(core_offset_preempt) "   \n\t"\
-      "  movl %gs:" STR(core_offset_mainstack) ", %esp   \n\t"\
+      "  movl %gs:" STR(core_offset_preempt) ", %eax   \n\t"\
+      "  cmp $0, %eax                                   \n\t"\
+      "  je zero                                    \n\t"\
+       "  cmp $1, %eax                                   \n\t"\
+      "  je one                                    \n\t"\
+      "  cmp $2, %eax                                   \n\t"\
+      "  je two                                    \n\t"\
+      "  cmp $3, %eax                                   \n\t"\
+      "  je three                                    \n\t"\
+      "  cmp $4, %eax                                   \n\t"\
+      "  je four                                    \n\t"\
+      "  cmp $5, %eax                                   \n\t"\
+      "  je five                                    \n\t"\
+      "  zero: movl %esp, %gs:" STR(core_offset_preempt + 4) "   \n\t"\
+      "  jmp continue \n\t"\
+      "  one: movl %esp, %gs:" STR(core_offset_preempt + 8) "   \n\t"\
+      "  jmp continue \n\t"\
+      "  two: movl %esp, %gs:" STR(core_offset_preempt + 12) "   \n\t"\
+      "  jmp continue \n\t"\
+      "  three: movl %esp, %gs:" STR(core_offset_preempt + 16) "   \n\t"\
+      "  jmp continue \n\t"\
+      "  four: movl %esp, %gs:" STR(core_offset_preempt + 20) "   \n\t"\
+      "  jmp continue \n\t"\
+      "  five: movl %esp, %gs:" STR(core_offset_preempt + 24) "   \n\t"\
+      "  jmp continue \n\t"\
+      "  continue: movl %gs:" STR(core_offset_mainstack) ", %esp   \n\t"\
       "  sti                                        \n\t"\
       "  ret                                        \n\t"\
       "1:                                           \n\t"\
